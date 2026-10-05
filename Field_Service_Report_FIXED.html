@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Field Service Report — Prototype</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{margin:0;background:#f3f4f6;color:#111827}
+header{background:#111827;color:white;padding:18px 16px;position:sticky;top:0;z-index:5}
+h1{font-size:20px;margin:0 0 4px}.sub{font-size:13px;opacity:.75}
+main{max-width:900px;margin:auto;padding:14px}
+.card{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0001}
+h2{font-size:17px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}}
+label{display:block;font-weight:600;font-size:13px;margin-bottom:5px}
+input,select,textarea{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:9px;padding:11px;font:inherit;background:white}
+textarea{min-height:85px;resize:vertical}
+button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer}
+.primary{background:#2563eb;color:white}.secondary{background:#e5e7eb;color:#111827}.danger{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.status{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#fef3c7;color:#92400e}
+.status.ok{background:#dcfce7;color:#166534}
+.item{border-top:1px solid #e5e7eb;padding:12px 0}.item:first-child{border-top:0}
+.small{font-size:12px;color:#6b7280}
+.hidden{display:none}.toast{position:fixed;left:14px;right:14px;top:72px;z-index:20;background:#111827;color:white;border-radius:12px;padding:12px 14px;font-weight:700;box-shadow:0 4px 16px #0004;display:none}.toast.show{display:block}
+.checks label{font-weight:500;display:flex;gap:8px;align-items:center;margin:8px 0}.checks input{width:auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>Field Service Report</h1>
+  <div class="sub">Prototype v0.2 • Includes customer phone • Local save test</div>
+</header>
+<div id="toast" class="toast"></div>
+<main>
+  <div class="card">
+    <div class="actions">
+      <button type="button" class="primary" onclick="newReport()">+ New Service Call</button>
+      <button type="button" class="secondary" onclick="showSaved()">Saved Reports</button>
+    </div>
+    <p id="connection" class="small"></p><p id="jsStatus" class="small">Starting app…</p>
+  </div>
+
+  <section id="editor">
+    <div class="card">
+      <h2>Customer & Job</h2>
+      <div class="grid">
+        <div><label>Customer</label><input id="customer" placeholder="Customer / company"></div>
+        <div><label>Contact Number</label><input id="phone" type="tel" placeholder="Customer phone number"></div>
+        <div><label>Job / Work Order #</label><input id="job" placeholder="WO-1001"></div>
+        <div><label>Service Address</label><input id="address" placeholder="Address"></div>
+        <div><label>Technician</label><input id="tech" placeholder="Technician name"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Equipment</h2>
+      <div class="grid">
+        <div><label>Equipment Type</label><input id="etype" placeholder="Mini-split, RTU, freezer, etc."></div>
+        <div><label>Manufacturer</label><input id="maker"></div>
+        <div><label>Model</label><input id="model"></div>
+        <div><label>Serial</label><input id="serial"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Service Details</h2>
+      <div class="grid">
+        <div><label>Service Type</label>
+          <select id="stype"><option>Service Call</option><option>Preventive Maintenance</option><option>Installation</option><option>Warranty</option><option>Return Trip</option></select>
+        </div>
+        <div><label>Diagnosis</label><input id="diagnosis" placeholder="Primary diagnosis"></div>
+      </div>
+      <div style="margin-top:12px"><label>Work Performed</label><textarea id="work" placeholder="Describe troubleshooting and work completed..."></textarea></div>
+      <div style="margin-top:12px"><label>Notes / Recommendations</label><textarea id="notes"></textarea></div>
+    </div>
+
+    <div class="card">
+      <h2>Warranty & Billing</h2>
+      <div class="checks">
+        <label><input type="checkbox" id="warranty"> Warranty-covered work</label>
+      </div>
+      <div class="grid">
+        <div><label>Parts / Materials</label><input id="parts" placeholder="$0.00" inputmode="decimal"></div>
+        <div><label>Labor</label><input id="labor" placeholder="$0.00" inputmode="decimal"></div>
+        <div><label>Refrigerant Added (lb)</label><input id="ref" placeholder="0" inputmode="decimal"></div>
+        <div><label>Refrigerant Rate / lb</label><input id="rate" value="120" inputmode="decimal"></div>
+      </div>
+      <p class="small">Prototype rule: warranty-covered customer charges can be separated from recoverable warranty amounts; refrigerant is shown separately.</p>
+    </div>
+
+    <div class="card">
+      <h2>Customer Approval</h2>
+      <div class="grid">
+        <div><label>Customer Name</label><input id="custsig"></div>
+        <div><label>Approval / Signature</label><input id="sig" placeholder="Type name for prototype"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="actions">
+        <button type="button" class="primary" onclick="saveReport(event)">Save Report</button>
+        <button type="button" class="secondary" onclick="clearForm()">Clear</button>
+      </div>
+      <p id="saveMsg" class="small"></p>
+    </div>
+  </section>
+
+  <section id="saved" class="hidden">
+    <div class="card">
+      <h2>Saved on This iPad</h2>
+      <div id="list"></div>
+      <div class="actions"><button type="button" class="secondary" onclick="showEditor()">Back to Report</button><button type="button" class="primary" onclick="syncAll()">Sync Pending Reports</button></div>
+    </div>
+  </section>
+</main>
+<script>
+let currentId=null;
+const ids=["customer","phone","job","address","tech","etype","maker","model","serial","stype","diagnosis","work","notes","parts","labor","ref","rate","custsig","sig"];
+function val(id){return document.getElementById(id).value}
+function set(id,v){document.getElementById(id).value=v||""}
+function newReport(){currentId=null;clearForm();showEditor()}
+function clearForm(){ids.forEach(x=>set(x,""));set("rate","120");document.getElementById("warranty").checked=false;document.getElementById("saveMsg").textContent=""}
+function data(){
+ let d={};ids.forEach(x=>d[x]=val(x));d.warranty=document.getElementById("warranty").checked;return d
+}
+function makeId(){return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("report-"+Date.now()+"-"+Math.random().toString(36).slice(2,9))}
+function readReports(){try{return JSON.parse(localStorage.getItem("reports")||"[]")}catch(e){throw new Error("This view cannot access local storage. Open the HTML file in Safari rather than the Files preview, then try again.")}}
+function saveReport(ev){
+  if(ev){ev.preventDefault();ev.stopPropagation();}
+  try {
+    if(!storageOK()) throw new Error("Saved Reports storage is unavailable here. Open this HTML file in Safari.");
+    const d=data(), reports=readReports();
+    const obj={id:currentId||makeId(),created:new Date().toISOString(),status:"Pending Sync",data:d};
+    const i=reports.findIndex(x=>x.id===obj.id);
+    if(i>=0) reports[i]=obj; else reports.push(obj);
+    localStorage.setItem("reports",JSON.stringify(reports));
+    currentId=obj.id;
+    const msg="REPORT SAVED on this iPad — Pending Sync";
+    document.getElementById("saveMsg").textContent=msg;
+    toast(msg);
+    window.scrollTo({top:0,behavior:"smooth"});
+  } catch(e) {
+    const msg="SAVE FAILED: "+e.message;
+    document.getElementById("saveMsg").textContent=msg;
+    toast(msg);
+    alert(msg);
+  }
+}
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>t.classList.remove("show"),4000);
+}
+function storageOK(){
+ try { const k="__storage_test__"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return true; } catch(e){ return false; }
+}
+function showSaved(){
+  toast("Opening Saved Reports…");
+ if(!storageOK()){
+  document.getElementById("saveMsg").textContent="This file is being previewed by Files. Open it in Safari to enable Saved Reports on this iPad.";
+  alert("Please open this report in Safari. The Files preview cannot provide the storage needed for Saved Reports.");
+  return;
+ }
+ show("saved");render();
+}
+function showEditor(){show("editor")}
+function show(id){document.getElementById("editor").classList.toggle("hidden",id!=="editor");document.getElementById("saved").classList.toggle("hidden",id!=="saved")}
+function render(){
+ if(!storageOK()){document.getElementById("list").innerHTML='<p class="small">Open this HTML file in Safari to use Saved Reports.</p>';return;}
+ const r=JSON.parse(localStorage.getItem("reports")||"[]"), list=document.getElementById("list");
+ if(!r.length){list.innerHTML='<p class="small">No saved reports yet.</p>';return}
+ list.innerHTML=r.slice().reverse().map(x=>`<div class="item"><b>${esc(x.data.customer||"Unnamed customer")}</b> — ${esc(x.data.job||"No WO")}<br><span class="small">${new Date(x.created).toLocaleString()} • </span><span class="status ${x.status==="Synced"?"ok":""}">${x.status}</span><div class="actions" style="margin-top:8px"><button class="secondary" onclick="edit('${x.id}')">Open</button><button class="danger" onclick="del('${x.id}')">Delete</button></div></div>`).join("")
+}
+function edit(id){let r=JSON.parse(localStorage.getItem("reports")||"[]").find(x=>x.id===id);if(!r)return;currentId=id;ids.forEach(k=>set(k,r.data[k]));document.getElementById("warranty").checked=!!r.data.warranty;showEditor()}
+function del(id){let r=JSON.parse(localStorage.getItem("reports")||"[]").filter(x=>x.id!==id);localStorage.setItem("reports",JSON.stringify(r));render()}
+function syncAll(){
+ if(!navigator.onLine){alert("No internet connection. The reports remain safely stored on this iPad.");return}
+ let r=JSON.parse(localStorage.getItem("reports")||"[]");r.forEach(x=>x.status="Synced");localStorage.setItem("reports",JSON.stringify(r));render();alert("Demo only: the report status was changed locally. This prototype is not connected to an office server yet.")
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function net(){document.getElementById("connection").innerHTML=navigator.onLine?"🟢 Internet available":"🔴 Offline — reports can still be saved locally"}
+window.addEventListener("online",net);window.addEventListener("offline",net);net();showEditor();
+try {
+  document.getElementById("jsStatus").textContent = "🟢 App is running. Buttons are active.";
+  document.querySelectorAll("button[onclick]").forEach(function(btn){
+    var code=btn.getAttribute("onclick");
+    btn.removeAttribute("onclick");
+    btn.addEventListener("click",function(ev){
+      try { Function("event", code)(ev); }
+      catch(err) { document.getElementById("jsStatus").textContent="🔴 Button error: "+err.message; alert("Button error: "+err.message); }
+    });
+  });
+} catch(err) {
+  document.getElementById("jsStatus").textContent="🔴 App startup error: "+err.message;
+}
+if(!storageOK()) toast("Storage unavailable in this view — open this HTML file in Safari.");
+</script>
+</body>
+</html>
