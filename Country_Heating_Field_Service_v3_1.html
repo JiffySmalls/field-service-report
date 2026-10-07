@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Country Heating & Cooling — Field Service V3.1</title>
+<!-- V3.1: field/customer cleanup + verbal approval + touch/Apple Pencil signature -->
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{margin:0;background:#f3f4f6;color:#111827}header{background:#111827;color:white;padding:18px 16px;position:sticky;top:0;z-index:5}h1{font-size:20px;margin:0 0 4px}.sub{font-size:13px;opacity:.8}main{max-width:900px;margin:auto;padding:14px}.card{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0001}h2{font-size:17px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:650px){.grid{grid-template-columns:1fr}}label{display:block;font-weight:600;font-size:13px;margin-bottom:5px}input,select,textarea{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:9px;padding:11px;font:inherit;background:white}textarea{min-height:85px;resize:vertical}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer}.primary{background:#2563eb;color:white}.secondary{background:#e5e7eb;color:#111827}.danger{background:#fee2e2;color:#991b1b}.actions{display:flex;gap:10px;flex-wrap:wrap}.status{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#fef3c7;color:#92400e}.status.ok{background:#dcfce7;color:#166534}.item{border-top:1px solid #e5e7eb;padding:12px 0}.item:first-child{border-top:0}.small{font-size:12px;color:#6b7280}.hidden{display:none!important}.toast{position:fixed;left:14px;right:14px;top:72px;z-index:20;background:#111827;color:white;border-radius:12px;padding:12px 14px;font-weight:700;box-shadow:0 4px 16px #0004;display:none}.toast.show{display:block}.checks label{font-weight:500;display:flex;gap:8px;align-items:center;margin:8px 0}.checks input{width:auto}.brand{font-weight:800}.money{font-weight:800;font-size:18px}.login{max-width:480px;margin:20px auto}.mutedbox{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.approvalExtra{margin-top:12px}.signatureWrap{margin-top:12px}.signaturePad{width:100%;height:180px;border:1px solid #d1d5db;border-radius:10px;background:#fff;touch-action:none;display:block;box-sizing:border-box}.signatureTools{display:flex;gap:8px;margin-top:8px;align-items:center}.approvalBadge{font-size:12px;font-weight:700;color:#374151}.printOnly{display:none}@media print{header,.noPrint,#loginCard,#saved{display:none!important}.printOnly{display:block}body{background:white}.card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}main{max-width:none}.companyPrint{text-align:center;margin-bottom:16px}.companyPrint h1{font-size:24px}}
+</style>
+</head>
+<body>
+<header><h1>Country Heating & Cooling LLC</h1><div class="sub">Field Service System • Cross-device Firebase sync</div></header>
+<div id="toast" class="toast"></div>
+<main>
+<div class="companyPrint printOnly"><h1>Country Heating & Cooling LLC</h1><div>34545 South 4475 Road • Vinita, OK 74301 • 918-782-7210</div><div><b>Field Service Report / Estimate</b></div></div>
+<div id="loginCard" class="card login">
+<h2>Employee Sign In</h2><div class="grid"><div><label>Email</label><input id="loginEmail" type="email" autocomplete="username"></div><div><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password"></div></div>
+<div class="actions" style="margin-top:12px"><button id="loginBtn" class="primary">Sign In</button><button id="logoutBtn" class="secondary hidden">Sign Out</button></div><p id="authStatus" class="small">Not signed in. Local reports still work on this device.</p>
+</div>
+<div class="card noPrint"><div class="actions"><button id="newBtn" class="primary">+ New Service Call</button><button id="savedBtn" class="secondary">Saved Reports</button><button id="syncBtnTop" class="secondary">Sync Pending</button><button id="printBtn" class="secondary">Print / Save PDF</button></div><p id="connection" class="small"></p><p id="jsStatus" class="small">Starting app…</p></div>
+<section id="editor">
+<div class="card"><h2>Customer & Job</h2><div class="grid"><div><label>Customer</label><input id="customer" placeholder="Customer / company"></div><div><label>Contact Number</label><input id="phone" type="tel" placeholder="Customer phone number"></div><div><label>Job / Work Order #</label><input id="job" placeholder="WO-1001"></div><div><label>Service Address</label><input id="address" placeholder="Address"></div><div><label>Technician</label><input id="tech" placeholder="Technician name"></div></div></div>
+<div class="card"><h2>Equipment</h2><div class="grid"><div><label>Equipment Type</label><input id="etype" placeholder="Mini-split, RTU, freezer, etc."></div><div><label>Manufacturer</label><input id="maker"></div><div><label>Model</label><input id="model"></div><div><label>Serial</label><input id="serial"></div></div></div>
+<div class="card"><h2>Service Details</h2><div class="grid"><div><label>Service Type</label><select id="stype"><option>Service Call</option><option>Preventive Maintenance</option><option>Installation</option><option>Warranty</option><option>Return Trip</option></select></div><div><label>Diagnosis</label><input id="diagnosis" placeholder="Primary diagnosis"></div><div><label>Job Start Time</label><input id="startTime" type="time"></div><div><label>Job Stop Time</label><input id="stopTime" type="time"></div></div><div style="margin-top:12px"><label>Work Performed</label><textarea id="work" placeholder="Describe troubleshooting and work completed..."></textarea></div><div style="margin-top:12px"><label>Notes / Recommendations</label><textarea id="notes"></textarea></div></div>
+<div class="card"><h2>Warranty & Billing</h2><div class="checks"><label><input type="checkbox" id="warranty"> Warranty-covered work</label><label><input type="checkbox" id="partsPending"> Parts / materials pricing pending — office to finalize</label></div><div id="partsPendingNotice" class="mutedbox hidden" style="margin-bottom:12px"><b>Parts pricing pending.</b><div class="small">Required parts/materials have been identified, but final parts pricing is not included in this field estimate. Parts pricing and applicable sales tax will be finalized by the office after supplier cost is confirmed.</div></div><div class="grid"><div><label>Parts / Materials Cost</label><input id="partCost" inputmode="decimal" placeholder="0.00"></div><div><label>Customer Parts / Materials Charge (calculated)</label><input id="parts" readonly></div><div><label>Labor Hours (calculated)</label><input id="laborHours" readonly></div><div><label>Labor Charge @ $150/hr or any part thereof</label><input id="labor" readonly></div><div><label>Refrigerant Added — Pounds</label><input id="refLb" inputmode="numeric" placeholder="0"></div><div><label>Refrigerant Added — Ounces</label><input id="refOz" inputmode="decimal" placeholder="0"></div><div><label>Refrigerant Rate / lb</label><input id="rate" value="120" inputmode="decimal"></div><div><label>Refrigerant Charge</label><input id="refCharge" readonly></div><div><label>Parts Sales Tax (6.5%)</label><input id="tax" readonly></div></div><div class="mutedbox" style="margin-top:12px"><div><span id="totalLabel">Calculated customer total</span>: <span id="calculatedTotal" class="money">$0.00</span></div><div class="checks" style="margin-top:10px"><label><input type="checkbox" id="ownerAdjustmentApproved"> Enable owner-approved adjustment</label></div><label>Final Customer Total</label><input id="finalTotal" inputmode="decimal" placeholder="0.00" readonly><div id="adjustmentNote" class="small"></div></div></div>
+<div class="card"><h2>Customer Approval</h2>
+<div class="grid">
+  <div><label>Approval Method</label>
+    <select id="approvalMethod">
+      <option value="">Select approval method</option>
+      <option value="signature">Customer signature — in person</option>
+      <option value="phone">Verbal approval — by phone</option>
+      <option value="none">No approval yet</option>
+    </select>
+  </div>
+  <div><label>Approved By / Customer Name</label><input id="custsig" placeholder="Name of person authorizing work"></div>
+</div>
+<div id="phoneApproval" class="approvalExtra hidden">
+  <div class="grid">
+    <div><label>Approval Phone Number</label><input id="approvalPhone" type="tel" placeholder="Phone number used for approval"></div>
+    <div><label>Approval Date / Time</label><input id="approvalTime" type="datetime-local"></div>
+    <div><label>Price Disclosed at Approval</label>
+      <select id="priceDisclosure">
+        <option value="">Select one</option>
+        <option>Exact price provided</option>
+        <option>Estimate / range provided</option>
+        <option>Work authorized with final pricing pending</option>
+      </select>
+    </div>
+    <div><label>Approval Notes</label><input id="approvalNotes" placeholder="Optional details of verbal authorization"></div>
+  </div>
+</div>
+<div id="signatureApproval" class="signatureWrap hidden">
+  <label>Customer Signature</label>
+  <canvas id="signaturePad" class="signaturePad" aria-label="Customer signature pad"></canvas>
+  <input id="sig" type="hidden">
+  <div class="signatureTools noPrint"><button type="button" id="clearSignatureBtn" class="secondary">Clear Signature</button><span class="approvalBadge">Sign with finger or Apple Pencil</span></div>
+</div>
+<div id="noApprovalNotice" class="mutedbox approvalExtra hidden"><b>No customer approval recorded yet.</b><div class="small">Use this when authorization is still pending.</div></div>
+</div>
+<div class="card noPrint"><div class="actions"><button id="saveBtn" class="primary">Save Report</button><button id="clearBtn" class="secondary">Clear</button></div><p id="saveMsg" class="small"></p></div>
+</section>
+<section id="saved" class="hidden"><div class="card"><h2>Saved Reports — This Device + Cloud</h2><p id="savedStatus" class="small"></p><div id="list"></div><div class="actions"><button id="backBtn" class="secondary">Back to Report</button><button id="syncBtn" class="primary">Sync Pending Reports</button></div></div></section>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, serverTimestamp, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyCBbCjA4LzoR-k-9KCyAFS7l2H3taQJu9Q",authDomain:"country-heating-and-cooling.firebaseapp.com",projectId:"country-heating-and-cooling",storageBucket:"country-heating-and-cooling.firebasestorage.app",messagingSenderId:"928381543306",appId:"1:928381543306:web:7f5625c3af5d1050ec1e73"};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);setPersistence(auth,browserLocalPersistence).catch(()=>{});
+let currentId=null,currentUser=null,finalManuallyEdited=false,visibleReports=[];
+const ids=["customer","phone","job","address","tech","etype","maker","model","serial","stype","diagnosis","startTime","stopTime","work","notes","partCost","parts","laborHours","labor","refLb","refOz","rate","refCharge","tax","finalTotal","custsig","sig","approvalMethod","approvalPhone","approvalTime","priceDisclosure","approvalNotes"];
+const $=id=>document.getElementById(id), val=id=>$(id).value, set=(id,v)=>{$(id).value=v??""};
+function money(n){return "$"+(Number(n)||0).toFixed(2)} function num(id){return parseFloat(val(id).replace(/[$,]/g,""))||0}
+function calc(){
+  let mins=0;
+  if(val("startTime")&&val("stopTime")){let [sh,sm]=val("startTime").split(":").map(Number),[eh,em]=val("stopTime").split(":").map(Number);mins=(eh*60+em)-(sh*60+sm);if(mins<0)mins+=1440;}
+  let rawHours=mins/60,billedHours=mins>0?Math.ceil(rawHours):0,labor=billedHours*150;
+  const pending=$("partsPending").checked;let cost=Math.max(0,num("partCost")),parts=0;
+  if(!pending&&cost>0){parts=cost<100?cost*2:cost<=400?Math.min(cost*2,cost/0.60):cost/0.60;}
+  let tax=pending?0:parts*.065;
+  let refLb=Math.max(0,num("refLb")),refOz=Math.max(0,num("refOz")),refTotalLb=refLb+(refOz/16),refrig=refTotalLb*num("rate"),total=parts+tax+labor+refrig;
+  set("parts",parts?parts.toFixed(2):"");set("laborHours",mins?`${rawHours.toFixed(2)} actual / ${billedHours} billed`:"");set("labor",labor.toFixed(2));set("tax",tax.toFixed(2));set("refCharge",refrig.toFixed(2));$("calculatedTotal").textContent=money(total);
+  $("partsPendingNotice").classList.toggle("hidden",!pending);$("partCost").disabled=pending;$("totalLabel").textContent=pending?"Current estimated total — pending parts/material pricing":"Calculated customer total";
+  const approved=$("ownerAdjustmentApproved").checked;
+  $("finalTotal").readOnly=!approved;
+  if(!approved||!finalManuallyEdited)set("finalTotal",total.toFixed(2));
+  let f=num("finalTotal"),diff=total-f;
+  $("adjustmentNote").textContent=approved&&Math.abs(diff)>.004?(diff>0?`⚠ Owner-approved discount: ${money(diff)}`:`⚠ Owner-approved increase: ${money(-diff)}`):"No adjustment from calculated total.";
+  return {minutes:mins,actualHours:rawHours,billedHours,labor,partCost:cost,parts,partsPending:pending,tax,refrigerantPounds:refTotalLb,refrigerant:refrig,calculatedTotal:total,finalTotal:f,adjustment:total-f,ownerAdjustmentApproved:approved};
+}
+["startTime","stopTime","partCost","refLb","refOz","rate"].forEach(id=>$(id).addEventListener("input",()=>{finalManuallyEdited=false;$("ownerAdjustmentApproved").checked=false;calc()}));
+$("partsPending").addEventListener("change",()=>{finalManuallyEdited=false;$("ownerAdjustmentApproved").checked=false;if($("partsPending").checked)set("partCost","");calc()});
+$("ownerAdjustmentApproved").addEventListener("change",()=>{finalManuallyEdited=false;calc();if($("ownerAdjustmentApproved").checked)toast("Owner adjustment enabled — verify final total before saving.")});
+$("finalTotal").addEventListener("input",()=>{if(!$("ownerAdjustmentApproved").checked){finalManuallyEdited=false;calc();return}finalManuallyEdited=true;calc()});
+function data(){let d={};ids.forEach(x=>d[x]=val(x));d.warranty=$("warranty").checked;d.partsPending=$("partsPending").checked;d.ownerAdjustmentApproved=$("ownerAdjustmentApproved").checked;d.billing=calc();return d}
+function makeId(){return crypto.randomUUID?crypto.randomUUID():("report-"+Date.now()+"-"+Math.random().toString(36).slice(2,9))}
+function storageOK(){try{localStorage.setItem("__t","1");localStorage.removeItem("__t");return true}catch{return false}} function readReports(){return JSON.parse(localStorage.getItem("reports")||"[]")}
+function writeReports(r){localStorage.setItem("reports",JSON.stringify(r))}
+function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>$("toast").classList.remove("show"),4000)}
+function show(id){$("editor").classList.toggle("hidden",id!=="editor");$("saved").classList.toggle("hidden",id!=="saved")}
+function clearForm(){ids.forEach(x=>set(x,""));set("rate","120");$("warranty").checked=false;$("partsPending").checked=false;$("ownerAdjustmentApproved").checked=false;$("saveMsg").textContent="";finalManuallyEdited=false;clearSignature(false);updateApprovalUI();calc()}
+function newReport(){currentId=null;clearForm();show("editor")}
+function saveLocal(){if(!storageOK())throw new Error("Local storage is unavailable in this browser view.");const d=data(),reports=readReports(),old=reports.find(x=>x.id===(currentId||""));const obj={id:currentId||makeId(),created:old?.created||new Date().toISOString(),updated:new Date().toISOString(),status:"Pending Sync",data:d};const i=reports.findIndex(x=>x.id===obj.id);if(i>=0)reports[i]=obj;else reports.push(obj);writeReports(reports);currentId=obj.id;return obj}
+async function saveReport(){try{const obj=saveLocal();$("saveMsg").textContent="REPORT SAVED on this device — Pending Sync";toast("REPORT SAVED — Pending Sync");if(currentUser&&navigator.onLine){await syncOne(obj.id);$("saveMsg").textContent="REPORT SAVED & SYNCED";toast("REPORT SAVED & SYNCED ✓")}window.scrollTo({top:0,behavior:"smooth"})}catch(e){alert("SAVE FAILED: "+e.message)}}
+async function syncOne(id){if(!currentUser)throw new Error("Sign in before syncing.");let reports=readReports(),i=reports.findIndex(x=>x.id===id);if(i<0)return;const r=reports[i];await setDoc(doc(db,"serviceReports",r.id),{...r,company:"Country Heating & Cooling LLC",syncedBy:currentUser.email,syncedAt:serverTimestamp()},{merge:true});r.status="Synced";r.syncedBy=currentUser.email;r.syncedLocalAt=new Date().toISOString();reports[i]=r;writeReports(reports)}
+async function syncAll(){if(!navigator.onLine){alert("No internet connection. Reports remain safely stored on this device.");return}if(!currentUser){alert("Please sign in before syncing.");return}let pending=readReports().filter(x=>x.status!=="Synced");try{for(const r of pending)await syncOne(r.id);await loadSavedReports();toast(pending.length?`${pending.length} report${pending.length===1?"":"s"} synced ✓`:"Everything is already synced ✓")}catch(e){alert("SYNC FAILED: "+e.message)}}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function stamp(x){return Date.parse(x?.updated||x?.created||0)||0}
+async function getCloudReports(){if(!currentUser||!navigator.onLine)return [];const snap=await getDocs(collection(db,"serviceReports"));return snap.docs.map(d=>({...d.data(),id:d.id,status:"Synced",_cloud:true}))}
+async function loadSavedReports(){
+  const local=readReports().map(r=>({...r,_local:true}));let cloud=[];
+  $("savedStatus").textContent=currentUser&&navigator.onLine?"Loading cloud reports…":"Showing local reports only. Sign in and connect to the internet to load cloud reports.";
+  try{cloud=await getCloudReports()}catch(e){$("savedStatus").textContent="Local reports loaded. Cloud reports could not be loaded: "+e.message}
+  const map=new Map();
+  for(const r of cloud)map.set(r.id,r);
+  for(const r of local){const c=map.get(r.id);if(!c||stamp(r)>=stamp(c))map.set(r.id,{...r,_cloud:!!c,_local:true});else map.set(r.id,{...c,_local:true,_cloud:true});}
+  visibleReports=[...map.values()].sort((a,b)=>stamp(b)-stamp(a));
+  if(currentUser&&navigator.onLine)$("savedStatus").textContent=`Showing ${visibleReports.length} report${visibleReports.length===1?"":"s"} from this device + Firebase cloud.`;
+  render();
+}
+function render(){const r=visibleReports.length?visibleReports:readReports().map(x=>({...x,_local:true})),list=$("list");if(!r.length){list.innerHTML='<p class="small">No saved reports yet.</p>';return}list.innerHTML=r.map(x=>{const where=x._local&&x._cloud?"Device + Cloud":x._cloud?"Cloud":"This Device";const del=x._local?`<button class="danger" data-del="${x.id}">Delete Local Copy</button>`:"";return `<div class="item"><b>${esc(x.data?.customer||"Unnamed customer")}</b> — ${esc(x.data?.job||"No WO")}<br><span class="small">${new Date(x.created).toLocaleString()} • ${money(x.data?.billing?.finalTotal??x.data?.finalTotal)} • ${where} • </span><span class="status ${x.status==="Synced"?"ok":""}">${esc(x.status||"Synced")}</span><div class="actions" style="margin-top:8px"><button class="secondary" data-open="${x.id}">Open</button>${del}</div></div>`}).join("");list.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>edit(b.dataset.open));list.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>del(b.dataset.del))}
+function migrateRefrigerant(d){if(d.refLb===undefined){const old=parseFloat(d.ref)||0;d.refLb=old?String(Math.floor(old)):"";d.refOz=old?String(Math.round((old-Math.floor(old))*16)):"";}if(d.partCost===undefined)d.partCost="";}
+function edit(id){let r=visibleReports.find(x=>x.id===id)||readReports().find(x=>x.id===id);if(!r)return;currentId=id;const d={...(r.data||{})};migrateRefrigerant(d);ids.forEach(k=>set(k,d[k]));$("warranty").checked=!!d.warranty;$("partsPending").checked=!!(d.partsPending||d.billing?.partsPending);const explicitlyApproved=!!(d.ownerAdjustmentApproved||d.billing?.ownerAdjustmentApproved);$("ownerAdjustmentApproved").checked=explicitlyApproved;finalManuallyEdited=explicitlyApproved;updateApprovalUI();restoreSignature();calc();show("editor")}
+function del(id){if(!confirm("Delete this report from this device? The synced cloud copy will remain available."))return;writeReports(readReports().filter(x=>x.id!==id));loadSavedReports()}
+function localDateTimeValue(){
+  const d=new Date(),p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function updateApprovalUI(){
+  const method=val("approvalMethod");
+  $("phoneApproval").classList.toggle("hidden",method!=="phone");
+  $("signatureApproval").classList.toggle("hidden",method!=="signature");
+  $("noApprovalNotice").classList.toggle("hidden",method!=="none");
+  if(method==="phone"&&!val("approvalTime"))set("approvalTime",localDateTimeValue());
+  if(method!=="signature") resizeSignaturePad();
+}
+$("approvalMethod").addEventListener("change",()=>{updateApprovalUI(); if(val("approvalMethod")==="signature")setTimeout(()=>{resizeSignaturePad();restoreSignature()},0)});
+
+const canvas=$("signaturePad"),ctx=canvas.getContext("2d");
+let drawing=false,lastX=0,lastY=0;
+function resizeSignaturePad(){
+  if(!canvas||$("signatureApproval").classList.contains("hidden"))return;
+  const saved=val("sig");
+  const ratio=Math.max(window.devicePixelRatio||1,1);
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=Math.max(1,Math.round(rect.width*ratio));
+  canvas.height=Math.max(1,Math.round(rect.height*ratio));
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+  ctx.lineWidth=2.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#111827";
+  if(saved)restoreSignature();
+}
+function point(e){const r=canvas.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
+canvas.addEventListener("pointerdown",e=>{if(val("approvalMethod")!=="signature")return;drawing=true;canvas.setPointerCapture(e.pointerId);[lastX,lastY]=point(e);e.preventDefault()});
+canvas.addEventListener("pointermove",e=>{if(!drawing)return;const [x,y]=point(e);ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();lastX=x;lastY=y;e.preventDefault()});
+function endSignature(e){if(!drawing)return;drawing=false;try{set("sig",canvas.toDataURL("image/png"))}catch{}if(e)e.preventDefault()}
+canvas.addEventListener("pointerup",endSignature);canvas.addEventListener("pointercancel",endSignature);canvas.addEventListener("pointerleave",e=>{if(drawing)endSignature(e)});
+function clearSignature(clearValue=true){if(canvas){ctx.clearRect(0,0,canvas.width,canvas.height)}if(clearValue&&$("sig"))set("sig","")}
+$("clearSignatureBtn").onclick=()=>clearSignature(true);
+function restoreSignature(){
+  const data=val("sig");
+  if(!data||!data.startsWith("data:image"))return;
+  if($("signatureApproval").classList.contains("hidden"))return;
+  const img=new Image();
+  img.onload=()=>{resizeSignaturePadBlank();ctx.drawImage(img,0,0,canvas.clientWidth,canvas.clientHeight)};
+  img.src=data;
+}
+function resizeSignaturePadBlank(){
+  const ratio=Math.max(window.devicePixelRatio||1,1),rect=canvas.getBoundingClientRect();
+  canvas.width=Math.max(1,Math.round(rect.width*ratio));canvas.height=Math.max(1,Math.round(rect.height*ratio));
+  ctx.setTransform(ratio,0,0,ratio,0,0);ctx.lineWidth=2.2;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#111827";
+}
+window.addEventListener("resize",()=>{if(val("approvalMethod")==="signature")setTimeout(()=>{resizeSignaturePad();restoreSignature()},50)});
+function net(){$("connection").innerHTML=navigator.onLine?"🟢 Internet available":"🔴 Offline — reports can still be saved locally"}window.addEventListener("online",()=>{net();if(currentUser)toast("Back online — cloud reports are available again.")});window.addEventListener("offline",net);net();
+$("newBtn").onclick=newReport;$("savedBtn").onclick=async()=>{show("saved");await loadSavedReports()};$("backBtn").onclick=()=>show("editor");$("saveBtn").onclick=saveReport;$("clearBtn").onclick=clearForm;$("syncBtn").onclick=syncAll;$("syncBtnTop").onclick=syncAll;$("printBtn").onclick=()=>window.print();
+$("loginBtn").onclick=async()=>{try{await signInWithEmailAndPassword(auth,val("loginEmail").trim(),val("loginPassword"));set("loginPassword","")}catch(e){alert("SIGN IN FAILED: "+e.message)}};$("logoutBtn").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{currentUser=u||null;if(u){$("authStatus").textContent=`🔐 Signed in as ${u.email}`;$("loginBtn").classList.add("hidden");$("logoutBtn").classList.remove("hidden");$("loginEmail").classList.add("hidden");$("loginPassword").classList.add("hidden")}else{$("authStatus").textContent="Not signed in. Local reports still work on this device.";$("loginBtn").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("loginEmail").classList.remove("hidden");$("loginPassword").classList.remove("hidden")}});
+$("jsStatus").textContent="🟢 V3.1 running. Cloud sync + pending parts + verbal/touch approval loaded.";updateApprovalUI();calc();show("editor");
+</script>
+</body></html>
