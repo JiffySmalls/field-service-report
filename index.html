@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Country Heating & Cooling — Field Service V3.3</title>
-<!-- V3.3: field/customer cleanup + verbal approval + touch/Apple Pencil signature -->
+<title>Country Heating & Cooling — Field Service V3.4</title>
+<!-- V3.4: field/customer cleanup + verbal approval + touch/Apple Pencil signature -->
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{margin:0;background:#f3f4f6;color:#111827}header{background:#111827;color:white;padding:18px 16px;position:sticky;top:0;z-index:5}h1{font-size:20px;margin:0 0 4px}.sub{font-size:13px;opacity:.8}main{max-width:900px;margin:auto;padding:14px}.card{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0001}h2{font-size:17px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:650px){.grid{grid-template-columns:1fr}}label{display:block;font-weight:600;font-size:13px;margin-bottom:5px}input,select,textarea{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:9px;padding:11px;font:inherit;background:white}textarea{min-height:85px;resize:vertical}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer}.primary{background:#2563eb;color:white}.secondary{background:#e5e7eb;color:#111827}.danger{background:#fee2e2;color:#991b1b}.actions{display:flex;gap:10px;flex-wrap:wrap}.status{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#fef3c7;color:#92400e}.status.ok{background:#dcfce7;color:#166534}.item{border-top:1px solid #e5e7eb;padding:12px 0}.item:first-child{border-top:0}.small{font-size:12px;color:#6b7280}.hidden{display:none!important}.toast{position:fixed;left:14px;right:14px;top:72px;z-index:20;background:#111827;color:white;border-radius:12px;padding:12px 14px;font-weight:700;box-shadow:0 4px 16px #0004;display:none}.toast.show{display:block}.checks label{font-weight:500;display:flex;gap:8px;align-items:center;margin:8px 0}.checks input{width:auto}.brand{font-weight:800}.money{font-weight:800;font-size:18px}.login{max-width:480px;margin:20px auto}.mutedbox{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.approvalExtra{margin-top:12px}.signatureWrap{margin-top:12px}.signaturePad{width:100%;height:180px;border:1px solid #d1d5db;border-radius:10px;background:#fff;touch-action:none;display:block;box-sizing:border-box}.signatureTools{display:flex;gap:8px;margin-top:8px;align-items:center}.approvalBadge{font-size:12px;font-weight:700;color:#374151}.printOnly{display:none}@media print{header,.noPrint,#loginCard,#saved{display:none!important}.printOnly{display:block}body{background:white}.card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}main{max-width:none}.companyPrint{text-align:center;margin-bottom:16px}.companyPrint h1{font-size:24px}}
 </style>
@@ -20,7 +20,7 @@
 </div>
 <div class="card noPrint"><div class="actions"><button id="newBtn" class="primary">+ New Service Call</button><button id="savedBtn" class="secondary">Saved Reports</button><button id="syncBtnTop" class="secondary">Sync Pending</button><button id="printBtn" class="secondary">Print / Save PDF</button></div><p id="connection" class="small"></p><p id="jsStatus" class="small">Starting app…</p></div>
 <section id="editor">
-<div class="card"><h2>Customer & Job</h2><div class="grid"><div><label>Customer</label><input id="customer" placeholder="Customer / company"></div><div><label>Contact Number</label><input id="phone" type="tel" placeholder="Customer phone number"></div><div><label>Job / Work Order #</label><input id="job" readonly aria-label="Automatically assigned work order number"></div><div><label>Service Address</label><input id="address" placeholder="Address"></div><div><label>Technician</label><input id="tech" placeholder="Technician name"></div></div></div>
+<div class="card"><h2>Customer & Job</h2><div class="grid"><div><label>Customer</label><input id="customer" placeholder="Customer / company"></div><div><label>Contact Number</label><input id="phone" type="tel" placeholder="Customer phone number"></div><div><label>Job / Work Order #</label><input id="job" placeholder="Work-order number pending sync" readonly aria-label="Automatically assigned work order number"></div><div><label>Service Address</label><input id="address" placeholder="Address"></div><div><label>Technician</label><input id="tech" placeholder="Technician name"></div></div></div>
 <div class="card"><h2>Job Time</h2><div class="grid"><div><label>Job Start Time</label><input id="startTime" type="time"></div><div><label>Job Stop Time</label><input id="stopTime" type="time"></div></div></div>
 <div class="card"><h2>Equipment</h2><div class="grid"><div><label>Equipment Type</label><input id="etype" placeholder="Mini-split, RTU, freezer, etc."></div><div><label>Manufacturer</label><input id="maker"></div><div><label>Model</label><input id="model"></div><div><label>Serial</label><input id="serial"></div></div></div>
 <div class="card"><h2>Service Details</h2><div class="grid"><div><label>Service Type</label><select id="stype"><option>Service Call</option><option>Preventive Maintenance</option><option>Installation</option><option>Warranty</option><option>Return Trip</option></select></div><div><label>Reported Problem</label><input id="diagnosis" placeholder="Problem reported by customer"></div></div><div style="margin-top:12px"><label>Work Performed</label><textarea id="work" placeholder="Describe troubleshooting and work completed..."></textarea></div><div style="margin-top:12px"><label>Notes / Recommendations</label><textarea id="notes"></textarea></div></div>
@@ -67,10 +67,10 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, serverTimestamp, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, serverTimestamp, collection, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyCBbCjA4LzoR-k-9KCyAFS7l2H3taQJu9Q",authDomain:"country-heating-and-cooling.firebaseapp.com",projectId:"country-heating-and-cooling",storageBucket:"country-heating-and-cooling.firebasestorage.app",messagingSenderId:"928381543306",appId:"1:928381543306:web:7f5625c3af5d1050ec1e73"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);setPersistence(auth,browserLocalPersistence).catch(()=>{});
-let currentId=null,currentUser=null,finalManuallyEdited=false,visibleReports=[];
+let currentCreated=null,currentId=null,currentUser=null,finalManuallyEdited=false,visibleReports=[];
 const ids=["customer","phone","job","address","tech","etype","maker","model","serial","stype","diagnosis","startTime","stopTime","work","notes","partCost","parts","laborHours","labor","refLb","refOz","rate","refCharge","tax","finalTotal","custsig","sig","approvalMethod","approvalPhone","approvalTime","priceDisclosure","approvalNotes"];
 const $=id=>document.getElementById(id), val=id=>$(id).value, set=(id,v)=>{$(id).value=v??""};
 function money(n){return "$"+(Number(n)||0).toFixed(2)} function num(id){return parseFloat(val(id).replace(/[$,]/g,""))||0}
@@ -95,21 +95,50 @@ function calc(){
 $("partsPending").addEventListener("change",()=>{finalManuallyEdited=false;$("ownerAdjustmentApproved").checked=false;if($("partsPending").checked)set("partCost","");calc()});
 $("ownerAdjustmentApproved").addEventListener("change",()=>{finalManuallyEdited=false;calc();if($("ownerAdjustmentApproved").checked)toast("Owner adjustment enabled — verify final total before saving.")});
 $("finalTotal").addEventListener("input",()=>{if(!$("ownerAdjustmentApproved").checked){finalManuallyEdited=false;calc();return}finalManuallyEdited=true;calc()});
-function data(){if(!val("job")){currentId=currentId||makeId();set("job",workOrderNumber(currentId));}let d={};ids.forEach(x=>d[x]=val(x));d.warranty=$("warranty").checked;d.partsPending=$("partsPending").checked;d.ownerAdjustmentApproved=$("ownerAdjustmentApproved").checked;d.billing=calc();return d}
+function data(){let d={};ids.forEach(x=>d[x]=val(x));d.warranty=$("warranty").checked;d.partsPending=$("partsPending").checked;d.ownerAdjustmentApproved=$("ownerAdjustmentApproved").checked;d.billing=calc();return d}
 function makeId(){return crypto.randomUUID?crypto.randomUUID():("report-"+Date.now()+"-"+Math.random().toString(36).slice(2,9))}
 function storageOK(){try{localStorage.setItem("__t","1");localStorage.removeItem("__t");return true}catch{return false}} function readReports(){return JSON.parse(localStorage.getItem("reports")||"[]")}
 function writeReports(r){localStorage.setItem("reports",JSON.stringify(r))}
 function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>$("toast").classList.remove("show"),4000)}
 function show(id){$("editor").classList.toggle("hidden",id!=="editor");$("saved").classList.toggle("hidden",id!=="saved")}
 function clearForm(){const existingJob=val("job");ids.forEach(x=>set(x,""));set("job",existingJob);set("rate","120");$("warranty").checked=false;$("partsPending").checked=false;$("ownerAdjustmentApproved").checked=false;$("saveMsg").textContent="";finalManuallyEdited=false;clearSignature(false);updateApprovalUI();calc()}
-function workOrderNumber(id){
-  const d=new Date(),p=n=>String(n).padStart(2,"0");
-  return `WO-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${id}`;
+function workOrderMonth(date){
+  const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/Chicago",year:"2-digit",month:"2-digit"}).formatToParts(new Date(date));
+  return parts.find(p=>p.type==="year").value+parts.find(p=>p.type==="month").value;
 }
-function newReport(){currentId=makeId();clearForm();set("job",workOrderNumber(currentId));show("editor")}
-function saveLocal(){if(!storageOK())throw new Error("Local storage is unavailable in this browser view.");const d=data(),reports=readReports(),old=reports.find(x=>x.id===(currentId||""));const obj={id:currentId||makeId(),created:old?.created||new Date().toISOString(),updated:new Date().toISOString(),status:"Pending Sync",data:d};const i=reports.findIndex(x=>x.id===obj.id);if(i>=0)reports[i]=obj;else reports.push(obj);writeReports(reports);currentId=obj.id;return obj}
-async function saveReport(){try{const obj=saveLocal();$("saveMsg").textContent="REPORT SAVED on this device — Pending Sync";toast("REPORT SAVED — Pending Sync");if(currentUser&&navigator.onLine){await syncOne(obj.id);$("saveMsg").textContent="REPORT SAVED & SYNCED";toast("REPORT SAVED & SYNCED ✓")}window.scrollTo({top:0,behavior:"smooth"})}catch(e){alert("SAVE FAILED: "+e.message)}}
-async function syncOne(id){if(!currentUser)throw new Error("Sign in before syncing.");let reports=readReports(),i=reports.findIndex(x=>x.id===id);if(i<0)return;const r=reports[i];await setDoc(doc(db,"serviceReports",r.id),{...r,company:"Country Heating & Cooling LLC",syncedBy:currentUser.email,syncedAt:serverTimestamp()},{merge:true});r.status="Synced";r.syncedBy=currentUser.email;r.syncedLocalAt=new Date().toISOString();reports[i]=r;writeReports(reports)}
+function newReport(){currentId=makeId();currentCreated=new Date().toISOString();clearForm();set("job","");show("editor")}
+function saveLocal(){if(!storageOK())throw new Error("Local storage is unavailable in this browser view.");const d=data(),reports=readReports(),old=reports.find(x=>x.id===(currentId||""));const obj={id:currentId||makeId(),created:old?.created||currentCreated||new Date().toISOString(),updated:new Date().toISOString(),status:"Pending Sync",data:d};const i=reports.findIndex(x=>x.id===obj.id);if(i>=0)reports[i]=obj;else reports.push(obj);writeReports(reports);currentId=obj.id;return obj}
+async function saveReport(){try{const obj=saveLocal();$("saveMsg").textContent="REPORT SAVED on this device — Pending Sync";toast("REPORT SAVED — Pending Sync");if(currentUser&&navigator.onLine){await syncOne(obj.id);$("saveMsg").textContent="REPORT SAVED & SYNCED";toast("REPORT SAVED & SYNCED ✓")}window.scrollTo({top:0,behavior:"smooth"})}catch(e){const saved=readReports().find(r=>r.id===currentId);if(saved){$("saveMsg").textContent="REPORT SAVED on this device — sync pending";alert("Report is saved on this device, but sync did not finish: "+e.message)}else alert("SAVE FAILED: "+e.message)}}
+async function syncOne(id){
+  if(!currentUser)throw new Error("Sign in before syncing.");
+  const original=readReports().find(r=>r.id===id);if(!original)return;
+  const reportRef=doc(db,"serviceReports",id);
+  const assignedJob=await runTransaction(db,async transaction=>{
+    const existing=await transaction.get(reportRef);
+    let job=existing.exists()?existing.data().data?.job:"";
+    job=job||original.data.job;
+    if(!job){
+      const month=workOrderMonth(original.created);
+      const counterRef=doc(db,"workOrderCounters",month);
+      const counter=await transaction.get(counterRef);
+      const previous=counter.exists()?counter.data().lastNumber:0;
+      if(!Number.isInteger(previous)||previous<0)throw new Error("Monthly work-order counter needs office review.");
+      const next=previous+1;
+      if(next>999)throw new Error("This month has reached 999 work orders. Contact the office.");
+      job=month+"-"+String(next).padStart(3,"0");
+      transaction.set(counterRef,{lastNumber:next,updatedAt:serverTimestamp()},{merge:true});
+    }
+    transaction.set(reportRef,{...original,data:{...original.data,job},company:"Country Heating & Cooling LLC",syncedBy:currentUser.email,syncedAt:serverTimestamp()},{merge:true});
+    return job;
+  });
+  // Read again so local edits made during sync are not discarded.
+  const reports=readReports(),i=reports.findIndex(r=>r.id===id);
+  if(i>=0){const unchanged=JSON.stringify(reports[i])===JSON.stringify(original);reports[i].data.job=assignedJob;
+    if(unchanged){reports[i].status="Synced";reports[i].syncedBy=currentUser.email;reports[i].syncedLocalAt=new Date().toISOString();}
+    writeReports(reports);
+  }
+  if(currentId===id)set("job",assignedJob);
+}
 async function syncAll(){if(!navigator.onLine){alert("No internet connection. Reports remain safely stored on this device.");return}if(!currentUser){alert("Please sign in before syncing.");return}let pending=readReports().filter(x=>x.status!=="Synced");try{for(const r of pending)await syncOne(r.id);await loadSavedReports();toast(pending.length?`${pending.length} report${pending.length===1?"":"s"} synced ✓`:"Everything is already synced ✓")}catch(e){alert("SYNC FAILED: "+e.message)}}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function stamp(x){return Date.parse(x?.updated||x?.created||0)||0}
@@ -125,9 +154,9 @@ async function loadSavedReports(){
   if(currentUser&&navigator.onLine)$("savedStatus").textContent=`Showing ${visibleReports.length} report${visibleReports.length===1?"":"s"} from this device + Firebase cloud.`;
   render();
 }
-function render(){const r=visibleReports.length?visibleReports:readReports().map(x=>({...x,_local:true})),list=$("list");if(!r.length){list.innerHTML='<p class="small">No saved reports yet.</p>';return}list.innerHTML=r.map(x=>{const where=x._local&&x._cloud?"Device + Cloud":x._cloud?"Cloud":"This Device";const del=x._local?`<button class="danger" data-del="${x.id}">Delete Local Copy</button>`:"";return `<div class="item"><b>${esc(x.data?.customer||"Unnamed customer")}</b> — ${esc(x.data?.job||"No WO")}<br><span class="small">${new Date(x.created).toLocaleString()} • ${money(x.data?.billing?.finalTotal??x.data?.finalTotal)} • ${where} • </span><span class="status ${x.status==="Synced"?"ok":""}">${esc(x.status||"Synced")}</span><div class="actions" style="margin-top:8px"><button class="secondary" data-open="${x.id}">Open</button>${del}</div></div>`}).join("");list.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>edit(b.dataset.open));list.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>del(b.dataset.del))}
+function render(){const r=visibleReports.length?visibleReports:readReports().map(x=>({...x,_local:true})),list=$("list");if(!r.length){list.innerHTML='<p class="small">No saved reports yet.</p>';return}list.innerHTML=r.map(x=>{const where=x._local&&x._cloud?"Device + Cloud":x._cloud?"Cloud":"This Device";const del=x._local?`<button class="danger" data-del="${x.id}">Delete Local Copy</button>`:"";return `<div class="item"><b>${esc(x.data?.customer||"Unnamed customer")}</b> — ${esc(x.data?.job||"Number pending sync")}<br><span class="small">${new Date(x.created).toLocaleString()} • ${money(x.data?.billing?.finalTotal??x.data?.finalTotal)} • ${where} • </span><span class="status ${x.status==="Synced"?"ok":""}">${esc(x.status||"Synced")}</span><div class="actions" style="margin-top:8px"><button class="secondary" data-open="${x.id}">Open</button>${del}</div></div>`}).join("");list.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>edit(b.dataset.open));list.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>del(b.dataset.del))}
 function migrateRefrigerant(d){if(d.refLb===undefined){const old=parseFloat(d.ref)||0;d.refLb=old?String(Math.floor(old)):"";d.refOz=old?String(Math.round((old-Math.floor(old))*16)):"";}if(d.partCost===undefined)d.partCost="";}
-function edit(id){let r=visibleReports.find(x=>x.id===id)||readReports().find(x=>x.id===id);if(!r)return;currentId=id;const d={...(r.data||{})};migrateRefrigerant(d);ids.forEach(k=>set(k,d[k]));$("warranty").checked=!!d.warranty;$("partsPending").checked=!!(d.partsPending||d.billing?.partsPending);const explicitlyApproved=!!(d.ownerAdjustmentApproved||d.billing?.ownerAdjustmentApproved);$("ownerAdjustmentApproved").checked=explicitlyApproved;finalManuallyEdited=explicitlyApproved;updateApprovalUI();restoreSignature();calc();show("editor")}
+function edit(id){let r=visibleReports.find(x=>x.id===id)||readReports().find(x=>x.id===id);if(!r)return;currentId=id;currentCreated=r.created;const d={...(r.data||{})};migrateRefrigerant(d);ids.forEach(k=>set(k,d[k]));$("warranty").checked=!!d.warranty;$("partsPending").checked=!!(d.partsPending||d.billing?.partsPending);const explicitlyApproved=!!(d.ownerAdjustmentApproved||d.billing?.ownerAdjustmentApproved);$("ownerAdjustmentApproved").checked=explicitlyApproved;finalManuallyEdited=explicitlyApproved;updateApprovalUI();restoreSignature();calc();show("editor")}
 function del(id){if(!confirm("Delete this report from this device? The synced cloud copy will remain available."))return;writeReports(readReports().filter(x=>x.id!==id));loadSavedReports()}
 function localDateTimeValue(){
   const d=new Date(),p=n=>String(n).padStart(2,"0");
@@ -181,6 +210,6 @@ function net(){$("connection").innerHTML=navigator.onLine?"🟢 Internet availab
 $("newBtn").onclick=newReport;$("savedBtn").onclick=async()=>{show("saved");await loadSavedReports()};$("backBtn").onclick=()=>show("editor");$("saveBtn").onclick=saveReport;$("clearBtn").onclick=()=>{if(confirm("Clear the fields in this report? Its work-order number will stay the same."))clearForm()};$("syncBtn").onclick=syncAll;$("syncBtnTop").onclick=syncAll;$("printBtn").onclick=()=>window.print();
 $("loginBtn").onclick=async()=>{try{await signInWithEmailAndPassword(auth,val("loginEmail").trim(),val("loginPassword"));set("loginPassword","")}catch(e){alert("SIGN IN FAILED: "+e.message)}};$("logoutBtn").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,u=>{currentUser=u||null;if(u){$("authStatus").textContent=`🔐 Signed in as ${u.email}`;$("loginBtn").classList.add("hidden");$("logoutBtn").classList.remove("hidden");$("loginEmail").classList.add("hidden");$("loginPassword").classList.add("hidden")}else{$("authStatus").textContent="Not signed in. Local reports still work on this device.";$("loginBtn").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("loginEmail").classList.remove("hidden");$("loginPassword").classList.remove("hidden")}});
-$("jsStatus").textContent="🟢 V3.3 running. Automatic work orders + cloud sync + approval loaded.";newReport();
+$("jsStatus").textContent="🟢 V3.4 running. Monthly work orders (YYMM-001) + cloud sync + approval loaded.";newReport();
 </script>
 </body></html>
