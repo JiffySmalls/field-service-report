@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Country Heating & Cooling — Field Service V3.5</title>
-<!-- V3.5: multi-equipment entries and backward-compatible saved reports -->
+<title>Country Heating & Cooling — Field Service V3.6</title>
+<!-- V3.6: separate service and billing contacts/addresses, backward-compatible records -->
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{margin:0;background:#f3f4f6;color:#111827}header{background:#111827;color:white;padding:18px 16px;position:sticky;top:0;z-index:5}h1{font-size:20px;margin:0 0 4px}.sub{font-size:13px;opacity:.8}main{max-width:900px;margin:auto;padding:14px}.card{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0001}h2{font-size:17px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:650px){.grid{grid-template-columns:1fr}}label{display:block;font-weight:600;font-size:13px;margin-bottom:5px}input,select,textarea{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:9px;padding:11px;font:inherit;background:white}textarea{min-height:85px;resize:vertical}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer}.primary{background:#2563eb;color:white}.secondary{background:#e5e7eb;color:#111827}.danger{background:#fee2e2;color:#991b1b}.actions{display:flex;gap:10px;flex-wrap:wrap}.status{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#fef3c7;color:#92400e}.status.ok{background:#dcfce7;color:#166534}.item{border-top:1px solid #e5e7eb;padding:12px 0}.item:first-child{border-top:0}.small{font-size:12px;color:#6b7280}.hidden{display:none!important}.toast{position:fixed;left:14px;right:14px;top:72px;z-index:20;background:#111827;color:white;border-radius:12px;padding:12px 14px;font-weight:700;box-shadow:0 4px 16px #0004;display:none}.toast.show{display:block}.checks label{font-weight:500;display:flex;gap:8px;align-items:center;margin:8px 0}.checks input{width:auto}.brand{font-weight:800}.money{font-weight:800;font-size:18px}.login{max-width:480px;margin:20px auto}.mutedbox{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.approvalExtra{margin-top:12px}.signatureWrap{margin-top:12px}.signaturePad{width:100%;height:180px;border:1px solid #d1d5db;border-radius:10px;background:#fff;touch-action:none;display:block;box-sizing:border-box}.signatureTools{display:flex;gap:8px;margin-top:8px;align-items:center}.approvalBadge{font-size:12px;font-weight:700;color:#374151}.printOnly{display:none}@media print{header,.noPrint,#loginCard,#saved{display:none!important}.printOnly{display:block}body{background:white}.card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}main{max-width:none}.companyPrint{text-align:center;margin-bottom:16px}.companyPrint h1{font-size:24px}}
 </style>
@@ -20,7 +20,27 @@
 </div>
 <div class="card noPrint"><div class="actions"><button id="newBtn" class="primary">+ New Service Call</button><button id="savedBtn" class="secondary">Saved Reports</button><button id="syncBtnTop" class="secondary">Sync Pending</button><button id="printBtn" class="secondary">Print / Save PDF</button></div><p id="connection" class="small"></p><p id="jsStatus" class="small">Starting app…</p></div>
 <section id="editor">
-<div class="card"><h2>Customer & Job</h2><div class="grid"><div><label>Customer</label><input id="customer" placeholder="Customer / company"></div><div><label>Contact Number</label><input id="phone" type="tel" placeholder="Customer phone number"></div><div><label>Job / Work Order #</label><input id="job" placeholder="Work-order number pending sync" readonly aria-label="Automatically assigned work order number"></div><div><label>Service Address</label><input id="address" placeholder="Address"></div><div><label>Technician</label><input id="tech" placeholder="Technician name"></div></div></div>
+<div class="card"><h2>Customer & Job</h2><div class="grid">
+<div><label>Customer / Account Name</label><input id="customer" placeholder="Customer / company"></div>
+<div><label>Primary Contact Number</label><input id="phone" type="tel" placeholder="Customer phone number"></div>
+<div><label>Job / Work Order #</label><input id="job" placeholder="Work-order number pending sync" readonly aria-label="Automatically assigned work order number"></div>
+<div><label>Technician</label><input id="tech" placeholder="Technician name"></div>
+<div><label>Service Contact Name (optional)</label><input id="serviceContact" placeholder="Tenant / person on site"></div>
+<div><label>Service Contact Phone (optional)</label><input id="servicePhone" type="tel"></div>
+<div style="grid-column:1/-1"><label>Service Address</label><textarea id="address" rows="2" placeholder="Street, city, state, ZIP"></textarea></div>
+</div>
+<h2 style="margin-top:20px">Billing Information</h2>
+<div class="checks noPrint"><label><input id="sameBillingAddress" type="checkbox" checked> Billing address same as service address</label></div>
+<div class="grid">
+<div><label>Billing Contact Name (optional)</label><input id="billingContact" placeholder="Owner / property manager / accounts payable"></div>
+<div><label>Billing Company (optional)</label><input id="billingCompany"></div>
+<div><label>Billing Phone (optional)</label><input id="billingPhone" type="tel"></div>
+<div><label>Billing Email (optional)</label><input id="billingEmail" type="email"></div>
+<div><label>Responsible for Payment</label><select id="paymentResponsible"><option value="">Not specified</option><option>Customer</option><option>Property Owner</option><option>Property Management Company</option><option>Other</option></select></div>
+<div style="grid-column:1/-1"><label>Billing Address</label><textarea id="billingAddress" rows="2" placeholder="Street, city, state, ZIP" readonly></textarea></div>
+</div>
+<p class="small">All additional contact and billing fields are optional. Uncheck the address box if invoices go somewhere else.</p>
+</div>
 <div class="card"><h2>Job Time</h2><div class="grid"><div><label>Job Start Time</label><input id="startTime" type="time"></div><div><label>Job Stop Time</label><input id="stopTime" type="time"></div></div></div>
 <div class="card"><h2>Equipment Serviced</h2><p class="small">Add each indoor or outdoor unit separately. Use the same System / Group name to link units together. All fields optional.</p><div id="equipmentList"></div><div class="actions noPrint"><button type="button" id="addEquipmentBtn" class="secondary">+ Add Equipment</button></div></div>
 <div class="card"><h2>Service Details</h2><div class="grid"><div><label>Service Type</label><select id="stype"><option>Service Call</option><option>Preventive Maintenance</option><option>Installation</option><option>Warranty</option><option>Return Trip</option></select></div><div><label>Overall Reported Problem (Optional)</label><input id="diagnosis" placeholder="Problem reported by customer"></div></div><div style="margin-top:12px"><label>Overall Job Summary / Work Performed (Optional)</label><textarea id="work" placeholder="Summary across all units, if useful..."></textarea></div><div style="margin-top:12px"><label>Overall Notes / Recommendations (Optional)</label><textarea id="notes"></textarea></div></div>
@@ -71,7 +91,7 @@ import { getFirestore, doc, setDoc, serverTimestamp, collection, getDocs, runTra
 const firebaseConfig={apiKey:"AIzaSyCBbCjA4LzoR-k-9KCyAFS7l2H3taQJu9Q",authDomain:"country-heating-and-cooling.firebaseapp.com",projectId:"country-heating-and-cooling",storageBucket:"country-heating-and-cooling.firebasestorage.app",messagingSenderId:"928381543306",appId:"1:928381543306:web:7f5625c3af5d1050ec1e73"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);setPersistence(auth,browserLocalPersistence).catch(()=>{});
 let currentCreated=null,currentId=null,currentUser=null,finalManuallyEdited=false,visibleReports=[];
-const ids=["customer","phone","job","address","tech","stype","diagnosis","startTime","stopTime","work","notes","partCost","parts","laborHours","labor","refLb","refOz","rate","refCharge","tax","finalTotal","custsig","sig","approvalMethod","approvalPhone","approvalTime","priceDisclosure","approvalNotes"];
+const ids=["customer","phone","job","address","tech","serviceContact","servicePhone","billingContact","billingCompany","billingPhone","billingEmail","paymentResponsible","billingAddress","stype","diagnosis","startTime","stopTime","work","notes","partCost","parts","laborHours","labor","refLb","refOz","rate","refCharge","tax","finalTotal","custsig","sig","approvalMethod","approvalPhone","approvalTime","priceDisclosure","approvalNotes"];
 const $=id=>document.getElementById(id), val=id=>$(id).value, set=(id,v)=>{$(id).value=v??""};
 const equipmentFields=[['system','System / Group (e.g. Garage Mini-Split)'],['location','Unit Location (e.g. Living Room)'],['type','Equipment Type'],['maker','Manufacturer'],['model','Model #'],['serial','Serial #'],['problem','Reported Problem'],['performed','Work Performed'],['notes','Notes / Recommendations']];
 let equipmentCounter=0;
@@ -111,13 +131,20 @@ function calc(){
 $("partsPending").addEventListener("change",()=>{finalManuallyEdited=false;$("ownerAdjustmentApproved").checked=false;if($("partsPending").checked)set("partCost","");calc()});
 $("ownerAdjustmentApproved").addEventListener("change",()=>{finalManuallyEdited=false;calc();if($("ownerAdjustmentApproved").checked)toast("Owner adjustment enabled — verify final total before saving.")});
 $("finalTotal").addEventListener("input",()=>{if(!$("ownerAdjustmentApproved").checked){finalManuallyEdited=false;calc();return}finalManuallyEdited=true;calc()});
-function data(){let d={};ids.forEach(x=>d[x]=val(x));d.warranty=$("warranty").checked;d.partsPending=$("partsPending").checked;d.ownerAdjustmentApproved=$("ownerAdjustmentApproved").checked;d.equipment=getEquipment();d.billing=calc();return d}
+function updateBillingAddress(){
+  const same=$("sameBillingAddress").checked;
+  $("billingAddress").readOnly=same;
+  if(same)set("billingAddress",val("address"));
+}
+$("sameBillingAddress").addEventListener("change",updateBillingAddress);
+$("address").addEventListener("input",()=>{if($("sameBillingAddress").checked)updateBillingAddress()});
+function data(){let d={};ids.forEach(x=>d[x]=val(x));d.warranty=$("warranty").checked;d.partsPending=$("partsPending").checked;d.ownerAdjustmentApproved=$("ownerAdjustmentApproved").checked;d.equipment=getEquipment();d.sameBillingAddress=$("sameBillingAddress").checked;d.billing=calc();return d}
 function makeId(){return crypto.randomUUID?crypto.randomUUID():("report-"+Date.now()+"-"+Math.random().toString(36).slice(2,9))}
 function storageOK(){try{localStorage.setItem("__t","1");localStorage.removeItem("__t");return true}catch{return false}} function readReports(){return JSON.parse(localStorage.getItem("reports")||"[]")}
 function writeReports(r){localStorage.setItem("reports",JSON.stringify(r))}
 function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>$("toast").classList.remove("show"),4000)}
 function show(id){$("editor").classList.toggle("hidden",id!=="editor");$("saved").classList.toggle("hidden",id!=="saved")}
-function clearForm(){const existingJob=val("job");ids.forEach(x=>set(x,""));set("job",existingJob);set("rate","120");$("warranty").checked=false;$("partsPending").checked=false;$("ownerAdjustmentApproved").checked=false;$("saveMsg").textContent="";finalManuallyEdited=false;clearSignature(false);updateApprovalUI();setEquipment([{}]);calc()}
+function clearForm(){const existingJob=val("job");ids.forEach(x=>set(x,""));set("job",existingJob);set("rate","120");$("sameBillingAddress").checked=true;updateBillingAddress();$("warranty").checked=false;$("partsPending").checked=false;$("ownerAdjustmentApproved").checked=false;$("saveMsg").textContent="";finalManuallyEdited=false;clearSignature(false);updateApprovalUI();setEquipment([{}]);calc()}
 function workOrderMonth(date){
   const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/Chicago",year:"2-digit",month:"2-digit"}).formatToParts(new Date(date));
   return parts.find(p=>p.type==="year").value+parts.find(p=>p.type==="month").value;
@@ -172,7 +199,7 @@ async function loadSavedReports(){
 }
 function render(){const r=visibleReports.length?visibleReports:readReports().map(x=>({...x,_local:true})),list=$("list");if(!r.length){list.innerHTML='<p class="small">No saved reports yet.</p>';return}list.innerHTML=r.map(x=>{const where=x._local&&x._cloud?"Device + Cloud":x._cloud?"Cloud":"This Device";const del=x._local?`<button class="danger" data-del="${x.id}">Delete Local Copy</button>`:"";return `<div class="item"><b>${esc(x.data?.customer||"Unnamed customer")}</b> — ${esc(x.data?.job||"Number pending sync")}<br><span class="small">${new Date(x.created).toLocaleString()} • ${money(x.data?.billing?.finalTotal??x.data?.finalTotal)} • ${where} • </span><span class="status ${x.status==="Synced"?"ok":""}">${esc(x.status||"Synced")}</span><div class="actions" style="margin-top:8px"><button class="secondary" data-open="${x.id}">Open</button>${del}</div></div>`}).join("");list.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>edit(b.dataset.open));list.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>del(b.dataset.del))}
 function migrateRefrigerant(d){if(d.refLb===undefined){const old=parseFloat(d.ref)||0;d.refLb=old?String(Math.floor(old)):"";d.refOz=old?String(Math.round((old-Math.floor(old))*16)):"";}if(d.partCost===undefined)d.partCost="";}
-function edit(id){let r=visibleReports.find(x=>x.id===id)||readReports().find(x=>x.id===id);if(!r)return;currentId=id;currentCreated=r.created;const d={...(r.data||{})};migrateRefrigerant(d);ids.forEach(k=>set(k,d[k]));setEquipment(Array.isArray(d.equipment)?d.equipment:[{type:d.etype||"",maker:d.maker||"",model:d.model||"",serial:d.serial||""}]);$("warranty").checked=!!d.warranty;$("partsPending").checked=!!(d.partsPending||d.billing?.partsPending);const explicitlyApproved=!!(d.ownerAdjustmentApproved||d.billing?.ownerAdjustmentApproved);$("ownerAdjustmentApproved").checked=explicitlyApproved;finalManuallyEdited=explicitlyApproved;updateApprovalUI();restoreSignature();calc();show("editor")}
+function edit(id){let r=visibleReports.find(x=>x.id===id)||readReports().find(x=>x.id===id);if(!r)return;currentId=id;currentCreated=r.created;const d={...(r.data||{})};migrateRefrigerant(d);ids.forEach(k=>set(k,d[k]));$("sameBillingAddress").checked=d.sameBillingAddress!==undefined?!!d.sameBillingAddress:!d.billingAddress||d.billingAddress===d.address;updateBillingAddress();setEquipment(Array.isArray(d.equipment)?d.equipment:[{type:d.etype||"",maker:d.maker||"",model:d.model||"",serial:d.serial||""}]);$("warranty").checked=!!d.warranty;$("partsPending").checked=!!(d.partsPending||d.billing?.partsPending);const explicitlyApproved=!!(d.ownerAdjustmentApproved||d.billing?.ownerAdjustmentApproved);$("ownerAdjustmentApproved").checked=explicitlyApproved;finalManuallyEdited=explicitlyApproved;updateApprovalUI();restoreSignature();calc();show("editor")}
 function del(id){if(!confirm("Delete this report from this device? The synced cloud copy will remain available."))return;writeReports(readReports().filter(x=>x.id!==id));loadSavedReports()}
 function localDateTimeValue(){
   const d=new Date(),p=n=>String(n).padStart(2,"0");
@@ -226,6 +253,6 @@ function net(){$("connection").innerHTML=navigator.onLine?"🟢 Internet availab
 $("newBtn").onclick=newReport;$("savedBtn").onclick=async()=>{show("saved");await loadSavedReports()};$("backBtn").onclick=()=>show("editor");$("saveBtn").onclick=saveReport;$("clearBtn").onclick=()=>{if(confirm("Clear the fields in this report? Its work-order number will stay the same."))clearForm()};$("syncBtn").onclick=syncAll;$("syncBtnTop").onclick=syncAll;$("printBtn").onclick=()=>window.print();
 $("loginBtn").onclick=async()=>{try{await signInWithEmailAndPassword(auth,val("loginEmail").trim(),val("loginPassword"));set("loginPassword","")}catch(e){alert("SIGN IN FAILED: "+e.message)}};$("logoutBtn").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,u=>{currentUser=u||null;if(u){$("authStatus").textContent=`🔐 Signed in as ${u.email}`;$("loginBtn").classList.add("hidden");$("logoutBtn").classList.remove("hidden");$("loginEmail").classList.add("hidden");$("loginPassword").classList.add("hidden")}else{$("authStatus").textContent="Not signed in. Local reports still work on this device.";$("loginBtn").classList.remove("hidden");$("logoutBtn").classList.add("hidden");$("loginEmail").classList.remove("hidden");$("loginPassword").classList.remove("hidden")}});
-$("jsStatus").textContent="🟢 V3.5 running. Monthly work orders (YYMM-001) + cloud sync + approval loaded.";newReport();
+$("jsStatus").textContent="🟢 V3.6 running. Monthly work orders (YYMM-001) + cloud sync + approval loaded.";newReport();
 </script>
 </body></html>
